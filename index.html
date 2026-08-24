@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#241b33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="哀悼空间">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>哀悼空间 · 呼啸客栈</title>
+<style>
+  :root{
+    /* 黄昏为主，底部收回丁香紫（呼啸客栈签名色） */
+    --sky1:#f3d9b8; --sky2:#d9a679; --sky3:#a882ab; --sky4:#a78fce;
+    --ink:#3d2f38; --cream:#f6ecdd; --gold:#e8c07a; --rose:#d98c9a;
+    --stone:#cdbfae; --stone-d:#a8977f; --muted:#7a6b74;
+    --line:rgba(255,255,255,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 34%,var(--sky3) 66%,var(--sky4) 100%);
+    color:var(--cream);min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .app{width:100%;max-width:460px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+    padding:calc(24px + env(safe-area-inset-top)) 26px calc(24px + env(safe-area-inset-bottom))}
+
+  /* 远景：落日 + 地平线剪影 */
+  .scene{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .sun{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:120px;height:120px;
+    border-radius:50%;background:radial-gradient(circle,#fbe6c0,#f0b878 60%,transparent 72%);
+    filter:blur(2px);opacity:.85}
+  .ground{position:absolute;left:0;right:0;bottom:0;height:42%;
+    background:linear-gradient(180deg, rgba(154,128,196,0) 0%, rgba(154,128,196,.28) 100%)}
+
+  .stage{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;gap:22px}
+  .screen{display:none;flex-direction:column;align-items:center;gap:20px;width:100%;
+    animation:rise .8s ease both}
+  .screen.show{display:flex}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  h1{font-family:"Songti SC","Noto Serif SC",serif;font-size:26px;font-weight:600;line-height:1.6;letter-spacing:1px;
+     text-shadow:0 1px 12px rgba(60,30,40,.4)}
+  .lead{font-size:15.5px;line-height:1.9;color:#f6ecdd;opacity:.92;max-width:19em}
+  .soft{font-size:13.5px;line-height:1.8;color:#f0e2d0;opacity:.8;max-width:20em}
+
+  textarea,input{width:100%;background:rgba(255,255,255,.14);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;color:#fff;font-size:16px;font-family:inherit;outline:none;
+    backdrop-filter:blur(4px)}
+  textarea::placeholder,input::placeholder{color:rgba(255,255,255,.6)}
+  textarea{resize:none;min-height:76px;line-height:1.6}
+  .hint{font-size:12.5px;color:#f0e2d0;opacity:.7;line-height:1.7;text-align:left;width:100%;max-width:20em}
+
+  .btns{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:4px}
+  button{font-family:inherit;cursor:pointer;border:none;font-size:16px;border-radius:100px;transition:.2s;width:100%}
+  .primary{background:linear-gradient(180deg,#cbb6ec,#a78fce);color:#2e2145;font-weight:600;padding:16px;
+    box-shadow:0 8px 24px -8px rgba(120,70,40,.5)}
+  .primary:active{transform:scale(.98)}
+  .ghost{background:transparent;color:#f6ecdd;border:1px solid var(--line);padding:15px;font-weight:400}
+
+  /* 墓碑（emoji） + 碑文卡片 */
+  .grave-wrap{position:relative;width:200px;height:170px;display:flex;align-items:flex-end;justify-content:center;margin-top:6px}
+  .tomb{font-size:130px;line-height:1;filter:drop-shadow(0 12px 18px rgba(30,15,25,.5))}
+  .inscription{text-align:center;margin-top:4px;padding:14px 20px;
+    background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:16px;
+    backdrop-filter:blur(4px);max-width:20em}
+  .rip{font-family:"Songti SC",serif;font-size:12px;letter-spacing:4px;color:#f0e2d0;opacity:.7;margin-bottom:8px}
+  .g-name{font-family:"Songti SC","Noto Serif SC",serif;font-size:19px;font-weight:600;color:#fff;
+    line-height:1.5;margin-bottom:10px;word-break:break-word;text-shadow:0 1px 8px rgba(60,30,40,.4)}
+  .g-epitaph{font-family:"Songti SC","Noto Serif SC",serif;font-size:14px;color:#f6ecdd;
+    line-height:1.8;opacity:.92;word-break:break-word}
+  /* 花（emoji） */
+  .flowers{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+    display:flex;gap:3px;align-items:flex-end;height:34px;z-index:2}
+  .flower{font-size:22px;line-height:1;opacity:0;transform:translateY(10px) scale(.6);
+    transition:.55s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 3px 4px rgba(40,20,30,.4))}
+  .flower.on{opacity:1;transform:translateY(0) scale(1)}
+
+  .quote{font-family:"Songti SC","Noto Serif SC",serif;font-size:16px;line-height:2;color:#f6ecdd;
+    letter-spacing:1px;max-width:16em;text-shadow:0 1px 10px rgba(60,30,40,.4)}
+  .foot{margin-top:8px;font-size:11.5px;color:#f0e2d0;opacity:.7;letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="scene"><div class="sun"></div><div class="ground"></div></div>
+
+<div class="app">
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+let state='entry';
+let obj='';       // 哀悼对象
+let epitaph='';   // 墓志铭
+let flowerCount=0;
+const stage=document.getElementById('stage');
+
+function render(){
+  if(state==='entry'){
+    stage.innerHTML=`<div class="screen show">
+      <h1>哀悼空间</h1>
+      <p class="lead">承认失去，正视我们的损失。<br>有些事，我们从未得到，<br>或已经失去。<br>好好哀悼，对它们说再见吧。</p>
+      <p class="soft" style="margin-top:2px">每画上一个句号，<br>神经系统就减轻一个包袱。</p>
+      <div class="btns"><button class="primary" onclick="go('name')">开始</button></div>
+      <p class="foot">李啸天 · 呼啸客栈</p>
+    </div>`;return;
+  }
+  if(state==='name'){
+    stage.innerHTML=`<div class="screen show">
+      <h1 style="font-size:22px">你想要哀悼的，是什么？</h1>
+      <p class="soft">可以是一段关系、一段被辜负的时光、<br>一个没能成为的自己，或一个该放下的执念。</p>
+      <input id="objIn" maxlength="40" placeholder="在这里写下它的名字" value="${escapeAttr(obj)}">
+      <div class="btns"><button class="primary" onclick="saveName()">为它立一块碑</button></div>
+    </div>`;
+    setTimeout(()=>document.getElementById('objIn').focus(),300);return;
+  }
+  if(state==='epitaph'){
+    stage.innerHTML=`<div class="screen show">
+      <h1 style="font-size:22px">给它，写一句墓志铭</h1>
+      <p class="hint">墓志铭是郑重的告别——承认它曾经的意义，然后放下。<br>比如：<br>· 谢谢你曾经保护过我，现在我不再需要你了。<br>· 这里安葬着我以为的、他们会爱我。<br>· 愿你安息，我要往前走了。</p>
+      <textarea id="epIn" maxlength="80" placeholder="写下你想说的告别">${escapeText(epitaph)}</textarea>
+      <div class="btns"><button class="primary" onclick="saveEpitaph()">刻上</button></div>
+    </div>`;
+    setTimeout(()=>document.getElementById('epIn').focus(),300);return;
+  }
+  if(state==='grave'){
+    stage.innerHTML=`<div class="screen show">
+      <div class="grave-wrap">
+        <div class="tomb">🪦</div>
+        <div class="flowers" id="flowers">
+          ${['🌹','🌷','🌸','💐','🌼'].map((f,i)=>`<span class="flower" data-f="${f}"></span>`).join('')}
+        </div>
+      </div>
+      <div class="inscription">
+        <div class="rip">R · I · P</div>
+        <div class="g-name">${escapeHtml(obj||'——')}</div>
+        <div class="g-epitaph">${escapeHtml(epitaph||'')}</div>
+      </div>
+      <p class="soft" id="graveHint">为它献上一支花。</p>
+      <div class="btns">
+        <button class="ghost" onclick="offerFlower()">🌸 献花</button>
+        <button class="primary" onclick="go('farewell')">告别，然后离开</button>
+      </div>
+    </div>`;return;
+  }
+  if(state==='farewell'){
+    stage.innerHTML=`<div class="screen show">
+      <h1>太阳，照常升起</h1>
+      <p class="quote">郑重道别后，<br>生活依然滚滚向前。<br>悟已往之不谏，<br>知来者之可追。<br><br>似昨日死，今日误，来日生。</p>
+      <div class="btns"><button class="ghost" onclick="restart()">离开墓园</button></div>
+      <p class="foot">李啸天 · 呼啸客栈</p>
+    </div>`;return;
+  }
+}
+
+function go(s){state=s;render();}
+function saveName(){const v=document.getElementById('objIn').value.trim();if(!v)return;obj=v;go('epitaph');}
+function saveEpitaph(){epitaph=document.getElementById('epIn').value.trim();flowerCount=0;go('grave');}
+function offerFlower(){
+  if(flowerCount>=5){return;}
+  const fs=document.querySelectorAll('#flowers .flower');
+  fs[flowerCount].textContent=fs[flowerCount].getAttribute('data-f');
+  fs[flowerCount].classList.add('on');
+  flowerCount++;
+  const hint=document.getElementById('graveHint');
+  if(flowerCount>=5){hint.textContent='花已献上。你已经做得很好了。';}
+  else{hint.textContent='……再献一支，如果你想。';}
+}
+function restart(){obj='';epitaph='';flowerCount=0;state='entry';render();}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function escapeAttr(s){return escapeHtml(s);}
+function escapeText(s){return escapeHtml(s);}
+render();
+</script>
+</body>
+</html>

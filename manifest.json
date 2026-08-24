@@ -1,0 +1,13 @@
+{
+  "name": "哀悼空间",
+  "short_name": "哀悼空间",
+  "description": "承认失去，好好告别，然后往前走",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#a78fce",
+  "theme_color": "#a78fce",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
